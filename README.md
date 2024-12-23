@@ -294,10 +294,11 @@ yarn build
 * `preview:changed` - изменение превью карточки.
 
 ### Данные и типы
+
 * Product: описание товара.
   * Поля: `id`, `name`,` description`,` imageUrl`,`price`, `category`.
   * Используется в: `AppData`, `Card`, `Basket`.
-  * 
+
 * OrderData: данные заказа.
   * Поля: `products: Product[]`,` paymentMethod: string`,` address: string`.
   * Используется в: `Form`,` AppData`.
