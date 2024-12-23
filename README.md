@@ -292,3 +292,16 @@ yarn build
 * `order..*:changed` - изменение полей в форме заказа.
 * `formerrors:changed` - валидация полей.
 * `preview:changed` - изменение превью карточки.
+
+### Данные и типы
+* Product: описание товара.
+  * Поля: `id`, `name`,` description`,` imageUrl`,`price`, `category`.
+  * Используется в: `AppData`, `Card`, `Basket`.
+  * 
+* OrderData: данные заказа.
+  * Поля: `products: Product[]`,` paymentMethod: string`,` address: string`.
+  * Используется в: `Form`,` AppData`.
+
+*ContactData: контактные данные пользователя.
+  * Поля: `email: string`,` phone: string`.
+  * Используется в: `Contacts`.
