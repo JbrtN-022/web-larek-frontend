@@ -302,6 +302,6 @@ yarn build
   * Поля: `products: Product[]`,` paymentMethod: string`,` address: string`.
   * Используется в: `Form`,` AppData`.
 
-*ContactData: контактные данные пользователя.
+* ContactData: контактные данные пользователя.
   * Поля: `email: string`,` phone: string`.
   * Используется в: `Contacts`.
