@@ -1,7 +1,21 @@
 import { IEvents } from '../base/events';
-import { FormErrors, IOrderFormManager } from '../../types/index'
+import { FormErrors } from '../../types/index'
 
-export class OrderFormManager implements IOrderFormManager {
+export interface IFormModel {
+  payment: string;
+  email: string;
+  phone: string;
+  address: string;
+  total: number;
+  items: string[];
+  setOrderAddress(field: string, value: string): void
+  validateOrder(): boolean;
+  setOrderData(field: string, value: string): void
+  validateContacts(): boolean;
+  getOrderLot(): object;
+}
+
+export class FormModel implements IFormModel {
   payment: string;
   email: string;
   phone: string;
@@ -18,17 +32,19 @@ export class OrderFormManager implements IOrderFormManager {
     this.total = 0;
     this.items = [];
   }
-//значение строки "address"
+
+  // принимаем значение строки "address"
   setOrderAddress(field: string, value: string) {
     if (field === 'address') {
       this.address = value;
     }
 
     if (this.validateOrder()) {
-      this.events.emit('order:ready', this.returnOrderLot());
+      this.events.emit('order:ready', this.getOrderLot());
     }
   }
-// валидация данных "address"
+
+  // валидация данных строки "address"
   validateOrder() {
     const regexp = /^[а-яА-ЯёЁa-zA-Z0-9\s\/.,-]{7,}$/;
     const errors: typeof this.formErrors = {};
@@ -45,7 +61,8 @@ export class OrderFormManager implements IOrderFormManager {
     this.events.emit('formErrors:address', this.formErrors);
     return Object.keys(errors).length === 0;
   }
-// принимает значение данных строк "Email" и "Телефон"
+
+  // принимаем значение данных строк "Email" и "Телефон"
   setOrderData(field: string, value: string) {
     if (field === 'email') {
       this.email = value;
@@ -54,10 +71,11 @@ export class OrderFormManager implements IOrderFormManager {
     }
 
     if (this.validateContacts()) {
-      this.events.emit('order:ready', this.returnOrderLot());
+      this.events.emit('order:ready', this.getOrderLot());
     }
   }
-//валидация "Email" и "Телефон"
+
+  // Валидация данных строк "Email" и "Телефон"
   validateContacts() {
     const regexpEmail = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
     const regexpPhone = /^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{10}$/;
@@ -84,7 +102,7 @@ export class OrderFormManager implements IOrderFormManager {
     return Object.keys(errors).length === 0;
   }
 
-  returnOrderLot() {
+  getOrderLot() {
     return {
       payment: this.payment,
       email: this.email,

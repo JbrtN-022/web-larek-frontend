@@ -1,67 +1,63 @@
-import { IBasket } from "../../types";
-import { createElement, cloneTemplate, ensureElement, isEmpty } from "../../utils/utils";
+import { createElement } from "../../utils/utils";
 import { IEvents } from "../base/events";
 
+export interface IBasket {
+  basket: HTMLElement;
+  title: HTMLElement;
+  basketList: HTMLElement;
+  button: HTMLButtonElement;
+  basketPrice: HTMLElement;
+  headerBasketButton: HTMLButtonElement;
+  headerBasketCounter: HTMLElement;
+  renderHeaderBasketCounter(value: number): void;
+  renderSumAllProducts(sumAll: number): void;
+  render(): HTMLElement;
+}
+
 export class Basket implements IBasket {
-    basket: HTMLElement;
-    title: HTMLElement;
-    basketList: HTMLElement;
-    button: HTMLButtonElement;
-    basketPrice: HTMLElement;
-    headerBasketButton: HTMLButtonElement;
-    headerBasketCounter: HTMLElement;
+  basket: HTMLElement;
+  title: HTMLElement;
+  basketList: HTMLElement;
+  button: HTMLButtonElement;
+  basketPrice: HTMLElement;
+  headerBasketButton: HTMLButtonElement;
+  headerBasketCounter: HTMLElement;
+  
+  constructor(template: HTMLTemplateElement, protected events: IEvents) {
+    this.basket = template.content.querySelector('.basket').cloneNode(true) as HTMLElement;
+    this.title = this.basket.querySelector('.modal__title');
+    this.basketList = this.basket.querySelector('.basket__list');
+    this.button = this.basket.querySelector('.basket__button');
+    this.basketPrice = this.basket.querySelector('.basket__price');
+    this.headerBasketButton = document.querySelector('.header__basket');
+    this.headerBasketCounter = document.querySelector('.header__basket-counter');
+    
+    this.button.addEventListener('click', () => { this.events.emit('order:open') });
+    this.headerBasketButton.addEventListener('click', () => { this.events.emit('basket:open') });
 
-    constructor(template: string | HTMLTemplateElement, protected events: IEvents) {
-        // Клонируем шаблон корзины
-        this.basket = cloneTemplate<HTMLElement>(template);
+    this.items = [];
+  }
 
-        // Привязываем элементы корзины с использованием ensureElement
-        this.title = ensureElement<HTMLElement>(".modal__title", this.basket);
-        this.basketList = ensureElement<HTMLElement>(".basket__list", this.basket);
-        this.button = ensureElement<HTMLButtonElement>(".basket__button", this.basket);
-        this.basketPrice = ensureElement<HTMLElement>(".basket__price", this.basket);
-        this.headerBasketButton = ensureElement<HTMLButtonElement>(".header__basket");
-        this.headerBasketCounter = ensureElement<HTMLElement>(".header__basket-counter");
-
-        // Установка обработчиков событий
-        this.button.addEventListener("click", () => this.events.emit("order:open"));
-        this.headerBasketButton.addEventListener("click", () => this.events.emit("basket:open"));
-
-        this.items = [];
+  set items(items: HTMLElement[]) {
+    if (items.length) {
+      this.basketList.replaceChildren(...items);
+      this.button.removeAttribute('disabled');
+    } else {
+      this.button.setAttribute('disabled', 'disabled');
+      this.basketList.replaceChildren(createElement<HTMLParagraphElement>('p', { textContent: 'Корзина пуста' }));
     }
+  }
 
-    // Сеттер для установки товаров в корзине
-    set items(items: HTMLElement[]) {
-        if (items.length > 0) {
-            // Замена списка товаров
-            this.basketList.replaceChildren(...items);
-            this.button.removeAttribute("disabled");
-        } else {
-            // Если корзина пуста
-            this.basketList.replaceChildren(createElement<HTMLParagraphElement>("p", { textContent: "Корзина пуста" }));
-            this.button.setAttribute("disabled", "disabled");
-        }
-    }
+  renderHeaderBasketCounter(value: number) {
+    this.headerBasketCounter.textContent = String(value);
+  }
+  
+  renderSumAllProducts(sumAll: number) {
+    this.basketPrice.textContent = String(sumAll + ' синапсов');
+  }
 
-    // Обновление счётчика товаров
-    renderHeaderBasketCounter(value: number): void {
-        // if (isEmpty(value)) {
-        //     throw new Error("Счётчик товаров не может быть пустым");
-        // }
-        this.headerBasketCounter.textContent = String(value);
-    }
-
-    // Обновление общей стоимости товаров
-    renderSumAllProducts(sumAll: number): void {
-        // if (isEmpty(sumAll)) {
-        //     throw new Error("Общая сумма не может быть пустой");
-        // }
-        this.basketPrice.textContent = `${sumAll} синапсов`;
-    }
-
-    // Рендеринг корзины
-    render() {
-        this.title.textContent = "Корзина";
-        return this.basket;
-    }
+  render() {
+    this.title.textContent = 'Корзина';
+    return this.basket;
+  }
 }
