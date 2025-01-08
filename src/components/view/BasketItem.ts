@@ -1,45 +1,81 @@
-import { IActions, IProductItem } from "../../types";
+import { IActions, IProductItems } from "../../types";
 import { IEvents } from "../base/events";
 
 export interface IBasketItem {
   basketItem: HTMLElement;
-	index:HTMLElement;
-	title: HTMLElement;
-	price: HTMLElement;
-	buttonDelete: HTMLButtonElement;
-	render(data: IProductItem, item: number): HTMLElement;
+  index: HTMLElement;
+  name: HTMLElement;
+  price: HTMLElement;
+  buttonDelete: HTMLButtonElement;
+  render(data: IProductItems, item: number): HTMLElement;
 }
 
 export class BasketItem implements IBasketItem {
   basketItem: HTMLElement;
-	index:HTMLElement;
-	title: HTMLElement;
-	price: HTMLElement;
-	buttonDelete: HTMLButtonElement;
+  index: HTMLElement;
+  name: HTMLElement;
+  price: HTMLElement;
+  buttonDelete: HTMLButtonElement;
 
-  constructor (template: HTMLTemplateElement, protected events: IEvents, actions?: IActions) {
-    this.basketItem = template.content.querySelector('.basket__item').cloneNode(true) as HTMLElement;
-		this.index = this.basketItem.querySelector('.basket__item-index');
-		this.title = this.basketItem.querySelector('.card__title');
-		this.price = this.basketItem.querySelector('.card__price');
-		this.buttonDelete = this.basketItem.querySelector('.basket__item-delete');
+  constructor(
+    private template: HTMLTemplateElement,
+    private events: IEvents,
+    private actions?: IActions
+  ) {
+    this.basketItem = this.cloneTemplate();
+    this.index = this.getElement<HTMLElement>('.basket__item-index');
+    this.name = this.getElement<HTMLElement>('.card__title');
+    this.price = this.getElement<HTMLElement>('.card__price');
+    this.buttonDelete = this.getElement<HTMLButtonElement>('.basket__item-delete');
 
-		if (actions?.onClick) {
-			this.buttonDelete.addEventListener('click', actions.onClick);
-		}
+    this.setupDeleteAction();
   }
 
-	protected setPrice(value: number | null) {
-    if (value === null) {
-      return 'Бесценно'
+  /**
+   * Клонирует содержимое шаблона и возвращает элемент корзины.
+   */
+  private cloneTemplate(): HTMLElement {
+    const content = this.template.content.querySelector('.basket__item');
+    if (!content) {
+      throw new Error("Не удалось найти элемент с классом '.basket__item' в шаблоне.");
     }
-    return String(value) + ' синапсов'
+    return content.cloneNode(true) as HTMLElement;
   }
 
-	render(data: IProductItem, item: number) {
-		this.index.textContent = String(item);
-		this.title.textContent = data.title;
-		this.price.textContent = this.setPrice(data.price);
-		return this.basketItem;
-	}
+  /**
+   * Находит элемент внутри элемента корзины по селектору.
+   */
+  private getElement<T extends HTMLElement>(selector: string): T {
+    const element = this.basketItem.querySelector(selector);
+    if (!element) {
+      throw new Error(`Не удалось найти элемент с селектором '${selector}' в шаблоне.`);
+    }
+    return element as T;
+  }
+
+  /**
+   * Устанавливает обработчик для кнопки удаления.
+   */
+  private setupDeleteAction(): void {
+    if (this.actions?.onClick) {
+      this.buttonDelete.addEventListener('click', this.actions.onClick);
+    }
+  }
+
+  /**
+   * Форматирует цену товара.
+   */
+  private setPrice(value: number | null): string {
+    return value === null ? 'Бесценно' : `${value} синапсов`;
+  }
+
+  /**
+   * Заполняет данные элемента корзины.
+   */
+  render(data: IProductItems, item: number): HTMLElement {
+    this.index.textContent = String(item);
+    this.name.textContent = data.title;
+    this.price.textContent = this.setPrice(data.price);
+    return this.basketItem;
+  }
 }

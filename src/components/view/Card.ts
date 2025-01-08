@@ -1,8 +1,8 @@
-import { IActions, IProductItem } from "../../types";
+import { IActions, IProductItems } from "../../types";
 import { IEvents } from "../base/events";
 
 export interface ICard {
-  render(data: IProductItem): HTMLElement;
+  render(data: IProductItems): HTMLElement;
 }
 
 export class Card implements ICard {
@@ -12,11 +12,11 @@ export class Card implements ICard {
   protected _cardImage: HTMLImageElement;
   protected _cardPrice: HTMLElement;
   protected _colors = <Record<string, string>>{
-    "дополнительное": "additional",
-    "софт-скил": "soft",
-    "кнопка": "button",
-    "хард-скил": "hard",
-    "другое": "other",
+    "Дополнительное": "additional",
+    "Софт-скил": "soft",
+    "Кнопка": "button",
+    "Хард-скил": "hard",
+    "Другое": "other",
   }
   
   constructor(template: HTMLTemplateElement, protected events: IEvents, actions?: IActions) {
@@ -44,12 +44,12 @@ export class Card implements ICard {
 
   protected setPrice(value: number | null): string {
     if (value === null) {
-      return 'Бесценно'
+      return 'бесценно'
     }
-    return String(value) + ' синапсов'
+    return String(value) + 'синапсов'
   }
 
-  render(data: IProductItem): HTMLElement {
+  render(data: IProductItems): HTMLElement {
     this._cardCategory.textContent = data.category;
     this.cardCategory = data.category;
     this._cardTitle.textContent = data.title;

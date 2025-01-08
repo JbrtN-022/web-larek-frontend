@@ -2,160 +2,138 @@ import './scss/styles.scss';
 
 import { CDN_URL, API_URL } from './utils/constants';
 import { EventEmitter } from './components/base/events';
-import { ApiModel } from './components/Model/Api';
-import { DataModel } from './components/Model/Data';
+import { ApiModel } from './components/Model/ApiClient';
+import { DataModel } from './components/Model/AppData';
 import { Card } from './components/View/Card';
-import { CardPreview } from './components/View/CardPreview';
-import { IOrderForm, IProductItem } from './types';
+import { CardPreview } from './components/Presenter';
+import { IOrderForms, IProductItems } from './types';
 import { Modal } from './components/View/Modal';
 import { ensureElement } from './utils/utils';
 import { BasketModel } from './components/Model/Basket';
 import { Basket } from './components/View/Basket';
 import { BasketItem } from './components/View/BasketItem';
 import { FormModel } from './components/Model/Form';
-import { Order } from './components/View/FormOrder';
-import { Contacts } from './components/View/FormContacts';
+import { Order } from './components/View/Order';
+import { Contacts } from './components/View/Contacts';
 import { Success } from './components/View/Success';
 
-const cardCatalogTemplate = document.querySelector('#card-catalog') as HTMLTemplateElement;
-const cardPreviewTemplate = document.querySelector('#card-preview') as HTMLTemplateElement;
-const basketTemplate = document.querySelector('#basket') as HTMLTemplateElement;
-const cardBasketTemplate = document.querySelector('#card-basket') as HTMLTemplateElement;
-const orderTemplate = document.querySelector('#order') as HTMLTemplateElement;
-const contactsTemplate = document.querySelector('#contacts') as HTMLTemplateElement;
-const successTemplate = document.querySelector('#success') as HTMLTemplateElement;
+// Шаблоны
+const templates = {
+  cardCatalog: ensureElement<HTMLTemplateElement>('#card-catalog'),
+  cardPreview: ensureElement<HTMLTemplateElement>('#card-preview'),
+  basket: ensureElement<HTMLTemplateElement>('#basket'),
+  cardBasket: ensureElement<HTMLTemplateElement>('#card-basket'),
+  order: ensureElement<HTMLTemplateElement>('#order'),
+  contacts: ensureElement<HTMLTemplateElement>('#contacts'),
+  success: ensureElement<HTMLTemplateElement>('#success'),
+};
 
+// Основные модели и компоненты
 const apiModel = new ApiModel(CDN_URL, API_URL);
 const events = new EventEmitter();
 const dataModel = new DataModel(events);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
-const basket = new Basket(basketTemplate, events);
 const basketModel = new BasketModel();
+const basket = new Basket(templates.basket, events);
 const formModel = new FormModel(events);
-const order = new Order(orderTemplate, events);
-const contacts = new Contacts(contactsTemplate, events);
+const order = new Order(templates.order, events);
+const contacts = new Contacts(templates.contacts, events);
 
-/********** Отображения карточек товара на странице **********/
-events.on('productCards:receive', () => {
-  dataModel.productCards.forEach(item => {
-    const card = new Card(cardCatalogTemplate, events, { onClick: () => events.emit('card:select', item) });
+// Функции для упрощения кода
+function renderProductCards() {
+  dataModel.productCards.forEach((item) => {
+    const card = new Card(templates.cardCatalog, events, { onClick: () => events.emit('card:select', item) });
     ensureElement<HTMLElement>('.gallery').append(card.render(item));
   });
-});
+}
 
-/********** Получить объект данных "IProductItem" карточки по которой кликнули **********/
-events.on('card:select', (item: IProductItem) => { dataModel.setPreview(item) });
+function renderBasketItems() {
+  let index = 0;
+  basket.items = basketModel.basketProducts.map((item) => {
+    const basketItem = new BasketItem(templates.cardBasket, events, { onClick: () => events.emit('basket:basketItemRemove', item) });
+    return basketItem.render(item, ++index);
+  });
+}
 
-/********** Открываем модальное окно карточки товара **********/
-events.on('modalCard:open', (item: IProductItem) => {
-  const cardPreview = new CardPreview(cardPreviewTemplate, events)
+// Слушатели событий
+events.on('productCards:receive', renderProductCards);
+
+events.on('card:select', (item: IProductItems) => dataModel.setPreview(item));
+
+events.on('modalCard:open', (item: IProductItems) => {
+  const cardPreview = new CardPreview(templates.cardPreview, events);
   modal.content = cardPreview.render(item);
   modal.render();
 });
 
-/********** Добавление карточки товара в корзину **********/
 events.on('card:addBasket', () => {
-  basketModel.setSelectedСard(dataModel.selectedСard); // добавить карточку товара в корзину
-  basket.renderHeaderBasketCounter(basketModel.getCounter()); // отобразить количество товара на иконке корзины
+  basketModel.setSelectedСard(dataModel.selectedСard);
+  basket.renderHeaderBasketCounter(basketModel.getCounter());
   modal.close();
 });
 
-/********** Открытие модального окна корзины **********/
 events.on('basket:open', () => {
-  basket.renderSumAllProducts(basketModel.getSumAllProducts());  // отобразить сумма всех продуктов в корзине
-  let i = 0;
-  basket.items = basketModel.basketProducts.map((item) => {
-    const basketItem = new BasketItem(cardBasketTemplate, events, { onClick: () => events.emit('basket:basketItemRemove', item) });
-    i = i + 1;
-    return basketItem.render(item, i);
-  })
+  basket.renderSumAllProducts(basketModel.getSumAllProducts());
+  renderBasketItems();
   modal.content = basket.render();
   modal.render();
 });
 
-/********** Удаление карточки товара из корзины **********/
-events.on('basket:basketItemRemove', (item: IProductItem) => {
+events.on('basket:basketItemRemove', (item: IProductItems) => {
   basketModel.deleteCardToBasket(item);
-  basket.renderHeaderBasketCounter(basketModel.getCounter()); // отобразить количество товара на иконке корзины
-  basket.renderSumAllProducts(basketModel.getSumAllProducts()); // отобразить сумма всех продуктов в корзине
-  let i = 0;
-  basket.items = basketModel.basketProducts.map((item) => {
-    const basketItem = new BasketItem(cardBasketTemplate, events, { onClick: () => events.emit('basket:basketItemRemove', item) });
-    i = i + 1;
-    return basketItem.render(item, i);
-  })
+  basket.renderHeaderBasketCounter(basketModel.getCounter());
+  basket.renderSumAllProducts(basketModel.getSumAllProducts());
+  renderBasketItems();
 });
 
-/********** Открытие модального окна "способа оплаты" и "адреса доставки" **********/
 events.on('order:open', () => {
   modal.content = order.render();
   modal.render();
-  formModel.items = basketModel.basketProducts.map(item => item.id); // передаём список id товаров которые покупаем
+  formModel.items = basketModel.basketProducts.map((item) => item.id);
 });
 
-events.on('order:paymentSelection', (button: HTMLButtonElement) => { formModel.payment = button.name }) // передаём способ оплаты
+events.on('order:paymentSelection', (button: HTMLButtonElement) => formModel.payment = button.name);
 
-/********** Отслеживаем изменение в поле в вода "адреса доставки" **********/
-events.on(`order:changeAddress`, (data: { field: string, value: string }) => {
-  formModel.setOrderAddress(data.field, data.value);
-});
+events.on('order:changeAddress', (data: { field: string, value: string }) => formModel.setOrderAddress(data.field, data.value));
 
-/********** Валидация данных строки "address" и payment **********/
-events.on('formErrors:address', (errors: Partial<IOrderForm>) => {
+events.on('formErrors:address', (errors: Partial<IOrderForms>) => {
   const { address, payment } = errors;
   order.valid = !address && !payment;
-  order.formErrors.textContent = Object.values({address, payment}).filter(i => !!i).join('; ');
-})
+  order.formErrors.textContent = Object.values({ address, payment }).filter(Boolean).join('; ');
+});
 
-/********** Открытие модального окна "Email" и "Телефон" **********/
 events.on('contacts:open', () => {
   formModel.total = basketModel.getSumAllProducts();
   modal.content = contacts.render();
   modal.render();
 });
 
-/********** Отслеживаем изменение в полях вода "Email" и "Телефон" **********/
-events.on(`contacts:changeInput`, (data: { field: string, value: string }) => {
-  formModel.setOrderData(data.field, data.value);
-});
+events.on('contacts:changeInput', (data: { field: string, value: string }) => formModel.setOrderData(data.field, data.value));
 
-/********** Валидация данных строки "Email" и "Телефон" **********/
-events.on('formErrors:change', (errors: Partial<IOrderForm>) => {
+events.on('formErrors:change', (errors: Partial<IOrderForms>) => {
   const { email, phone } = errors;
   contacts.valid = !email && !phone;
-  contacts.formErrors.textContent = Object.values({phone, email}).filter(i => !!i).join('; ');
-})
+  contacts.formErrors.textContent = Object.values({ email, phone }).filter(Boolean).join('; ');
+});
 
-/********** Открытие модального окна "Заказ оформлен" **********/
 events.on('success:open', () => {
   apiModel.postOrderLot(formModel.getOrderLot())
-    .then((data) => {
-      console.log(data); // ответ сервера
-      const success = new Success(successTemplate, events);
+    .then(() => {
+      const success = new Success(templates.success, events);
       modal.content = success.render(basketModel.getSumAllProducts());
-      basketModel.clearBasketProducts(); // очищаем корзину
-      basket.renderHeaderBasketCounter(basketModel.getCounter()); // отобразить количество товара на иконке корзины
+      basketModel.clearBasketProducts();
+      basket.renderHeaderBasketCounter(basketModel.getCounter());
       modal.render();
     })
-    .catch(error => console.log(error));
+    .catch(console.error);
 });
 
 events.on('success:close', () => modal.close());
 
-/********** Блокируем прокрутку страницы при открытие модального окна **********/
-events.on('modal:open', () => {
-  modal.locked = true;
-});
+events.on('modal:open', () => modal.locked = true);
+events.on('modal:close', () => modal.locked = false);
 
-/********** Разблокируем прокрутку страницы при закрытие модального окна **********/
-events.on('modal:close', () => {
-  modal.locked = false;
-});
-
-/********** Получаем данные с сервера **********/
+// Загрузка данных
 apiModel.getListProductCard()
-  .then(function (data: IProductItem[]) {
-    dataModel.productCards = data;
-  })
-  // .then(dataModel.setProductCards.bind(dataModel))
-  .catch(error => console.log(error))
+  .then((data: IProductItems[]) => { dataModel.productCards = data; })
+  .catch(console.error);

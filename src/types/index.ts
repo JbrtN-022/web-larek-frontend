@@ -1,4 +1,4 @@
-export interface IProductItem {
+export interface IProductItems {
     id: string;
     description: string;
     image: string;
@@ -12,7 +12,7 @@ export interface IProductItem {
   }
   
   // интерфейс формы заказа
-  export interface IOrderForm {
+  export interface IOrderForms {
   payment?: string;
   address?: string;
   phone?: string;
@@ -20,11 +20,11 @@ export interface IProductItem {
   total?: string | number;
   }
   
-  export interface IOrder extends IOrderForm {
+  export interface IOrder extends IOrderForms {
     items: string[];
   }
   
-  export interface IOrderLot{
+  export interface IOrderLots{
     payment: string;
     email: string;
     phone: string;
@@ -40,3 +40,22 @@ export interface IProductItem {
   
   // тип ошибки формы
   export type FormErrors = Partial<Record<keyof IOrder, string>>;
+
+
+
+/*  export interface ISuccess {
+    close: HTMLButtonElement;
+    description: HTMLSpanElement;
+    total: number;
+  }
+  
+  export interface ISuccessActions {
+    onClick: () => void;
+  }
+  
+  export interface IBasket {
+    items: CardBasket[];
+    total: number | null;
+  }
+  
+  export type CardBasket = Pick<ICard, 'id' | 'title' | 'price'>;*/

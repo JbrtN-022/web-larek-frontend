@@ -21,7 +21,7 @@ export class Success {
   }
 
   render(total: number) {
-    this.description.textContent = String(`Списано ${total} синапсов`);
+    this.description.textContent = String(`Списано' ${total} синапсов`);
     return this.success
   }
 }

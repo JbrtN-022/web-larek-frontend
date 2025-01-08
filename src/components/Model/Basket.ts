@@ -1,22 +1,22 @@
-import { IProductItem } from "../../types";
+import { IProductItems } from "../../types";
 
 export interface IBasketModel {
-  basketProducts: IProductItem[];
+  basketProducts: IProductItems[];
   getCounter: () => number;
   getSumAllProducts: () => number;
-  setSelectedСard(data: IProductItem): void;
-  deleteCardToBasket(item: IProductItem): void;
+  setSelectedСard(data: IProductItems): void;
+  deleteCardToBasket(item: IProductItems): void;
   clearBasketProducts(): void
 }
 
 export class BasketModel implements IBasketModel {
-  protected _basketProducts: IProductItem[]; // список карточек товара в корзине
+  protected _basketProducts: IProductItems[]; // список карточек товара в корзине
 
   constructor() {
     this._basketProducts = [];
   }
 
-  set basketProducts(data: IProductItem[]) {
+  set basketProducts(data: IProductItems[]) {
     this._basketProducts = data;
   }
 
@@ -39,12 +39,12 @@ export class BasketModel implements IBasketModel {
   }
 
   // добавить карточку товара в корзину
-  setSelectedСard(data: IProductItem) {
+  setSelectedСard(data: IProductItems) {
     this._basketProducts.push(data);
   }
 
   // удалить карточку товара из корзины
-  deleteCardToBasket(item: IProductItem) {
+  deleteCardToBasket(item: IProductItems) {
     const index = this._basketProducts.indexOf(item);
     if (index >= 0) {
       this._basketProducts.splice(index, 1);

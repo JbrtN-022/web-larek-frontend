@@ -39,6 +39,29 @@ export class EventEmitter implements IEvents {
     }
 
     /**
+         * Инициировать событие с данными
+         */
+    emit<T extends object>(eventName: string, data?: T) {
+        this._events.forEach((subscribers, name) => {
+            if (name instanceof RegExp && name.test(eventName) || name === eventName) {
+                subscribers.forEach(callback => callback(data));
+            }
+        });
+    }
+
+
+    /**
+     * Сделать коллбек триггер, генерирующий событие при вызове
+     */
+    trigger<T extends object>(eventName: string, context?: Partial<T>) {
+        return (event: object = {}) => {
+            this.emit(eventName, {
+                ...(event || {}),
+                ...(context || {})
+            });
+        };
+    }
+    /**
      * Снять обработчик с события
      */
     off(eventName: EventName, callback: Subscriber) {
@@ -49,18 +72,7 @@ export class EventEmitter implements IEvents {
             }
         }
     }
-
-    /**
-     * Инициировать событие с данными
-     */
-    emit<T extends object>(eventName: string, data?: T) {
-        this._events.forEach((subscribers, name) => {
-            if (name instanceof RegExp && name.test(eventName) || name === eventName) {
-                subscribers.forEach(callback => callback(data));
-            }
-        });
-    }
-
+    
     /**
      * Слушать все события
      */
@@ -73,18 +85,6 @@ export class EventEmitter implements IEvents {
      */
     offAll() {
         this._events = new Map<string, Set<Subscriber>>();
-    }
-
-    /**
-     * Сделать коллбек триггер, генерирующий событие при вызове
-     */
-    trigger<T extends object>(eventName: string, context?: Partial<T>) {
-        return (event: object = {}) => {
-            this.emit(eventName, {
-                ...(event || {}),
-                ...(context || {})
-            });
-        };
     }
 }
 

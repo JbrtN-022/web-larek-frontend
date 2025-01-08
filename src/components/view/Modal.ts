@@ -2,15 +2,15 @@ import { IEvents } from "../base/events";
 
 export interface IModal {
   open(): void;
-  close(): void;
   render(): HTMLElement
+  close(): void;
 }
 
 export class Modal implements IModal {
   protected modalContainer: HTMLElement;
-  protected closeButton: HTMLButtonElement;
   protected _content: HTMLElement;
   protected _pageWrapper: HTMLElement;
+  protected closeButton: HTMLButtonElement;
   
   constructor(modalContainer: HTMLElement, protected events: IEvents) {
     this.modalContainer = modalContainer;
@@ -34,6 +34,12 @@ export class Modal implements IModal {
     this.events.emit('modal:open');
   }
 
+  render(): HTMLElement {
+    this._content;
+    this.open();
+    return this.modalContainer
+  }
+
   // закрытие модального окна
   close() {
     this.modalContainer.classList.remove('modal_active');
@@ -49,9 +55,5 @@ export class Modal implements IModal {
     }
   }
 
-  render(): HTMLElement {
-    this._content;
-    this.open();
-    return this.modalContainer
-  }
+  
 }
