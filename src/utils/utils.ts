@@ -24,7 +24,7 @@ export function ensureAllElements<T extends HTMLElement>(selectorElement: Select
     }
     throw new Error(`Unknown selector element`);
 }
-
+//
 export type SelectorElement<T> = T | string;
 
 export function ensureElement<T extends HTMLElement>(selectorElement: SelectorElement<T>, context?: HTMLElement): T {
