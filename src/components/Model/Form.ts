@@ -33,12 +33,41 @@ export class FormModel implements IFormModel {
     this.items = [];
   }
 
+ // Не понимаю почему кнопка 'далее' остается не активной хотя я проверяю заполнены ли все поля и если это так то даю класс button_alt-active
+
   // принимаем значение строки "address"
 
   setOrderAddress(value: string) {
     this.address = value;
     this.updateFormState();
   }
+
+  isValid() {
+    return !!this.address && !!this.email && !!this.phone && !!this.payment;
+  }
+  
+  updateFormState() {
+    const isValid = this.isValid();
+  
+  // Получаем кнопку оформления заказа
+  const submitButton = document.querySelector<HTMLButtonElement>('.order__submit');
+  
+  if (submitButton) {
+    // Активируем или деактивируем кнопку
+    submitButton.disabled = !isValid;
+
+    // Меняем стиль кнопки, добавляя/удаляя класс для активного состояния
+    if (isValid) {
+      submitButton.classList.add('button_alt-active'); // Активный стиль
+    } else {
+      submitButton.classList.remove('button_alt-active'); // Обычный стиль
+    }
+  }
+
+  // Уведомляем всех подписчиков о состоянии формы
+  this.events.emit('form:stateChange', { isValid });
+  }
+
   /*setOrderAddress(field: string, value: string) {
     if (field === 'address') {
       this.address = value;
@@ -113,15 +142,7 @@ export class FormModel implements IFormModel {
     return Object.keys(errors).length === 0;
   }
 
-  isFormValid() {
-    return !!this.address && !!this.email && !!this.phone && !!this.payment;
-  }
   
-  updateFormState() {
-    const isValid = this.isFormValid();
-    this.events.emit('form:stateChange', { isValid });
-  }
-
   getOrderLot() {
     return {
       payment: this.payment,
