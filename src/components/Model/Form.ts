@@ -34,7 +34,12 @@ export class FormModel implements IFormModel {
   }
 
   // принимаем значение строки "address"
-  setOrderAddress(field: string, value: string) {
+
+  setOrderAddress(value: string) {
+    this.address = value;
+    this.updateFormState();
+  }
+  /*setOrderAddress(field: string, value: string) {
     if (field === 'address') {
       this.address = value;
     }
@@ -42,7 +47,7 @@ export class FormModel implements IFormModel {
     if (this.validateOrder()) {
       this.events.emit('order:ready', this.getOrderLot());
     }
-  }
+  }*/
 
   // валидация данных строки "address"
   validateOrder() {
@@ -53,9 +58,15 @@ export class FormModel implements IFormModel {
       errors.address = 'Необходимо указать адрес'
     } else if (!regexp.test(this.address)) {
       errors.address = 'Укажите настоящий адрес'
-    } else if (!this.payment) {
-      errors.payment = 'Выберите способ оплаты'
+    } 
+
+    if (!this.payment) {
+      errors.payment = 'Выберите способ оплаты';
     }
+
+    console.log('Current address:', this.address);
+    console.log('Current payment:', this.payment);
+    console.log('Validation errors:', errors);
 
     this.formErrors = errors;
     this.events.emit('formErrors:address', this.formErrors);
@@ -100,6 +111,15 @@ export class FormModel implements IFormModel {
     this.formErrors = errors;
     this.events.emit('formErrors:change', this.formErrors);
     return Object.keys(errors).length === 0;
+  }
+
+  isFormValid() {
+    return !!this.address && !!this.email && !!this.phone && !!this.payment;
+  }
+  
+  updateFormState() {
+    const isValid = this.isFormValid();
+    this.events.emit('form:stateChange', { isValid });
   }
 
   getOrderLot() {

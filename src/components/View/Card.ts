@@ -4,6 +4,14 @@ import { IEvents } from "../base/events";
 export interface ICard {
   render(data: IProductItems): HTMLElement;
 }
+const colors = new Map([
+  ['софт-скил', 'card__category_soft'],
+  ['хард-скил', 'card__category_hard'],
+  ['другое', 'card__category_other'],
+  ['дополнительное', 'card__category_additional'],
+  ['кнопка', 'card__category_button'],
+]);
+
 
 export class Card implements ICard {
   protected _cardElement: HTMLElement;
@@ -11,13 +19,13 @@ export class Card implements ICard {
   protected _cardTitle: HTMLElement;
   protected _cardImage: HTMLImageElement;
   protected _cardPrice: HTMLElement;
-  protected _colors = <Record<string, string>>{
+  /*protected colors = <Record<string, string>>{
     "Дополнительное": "additional",
     "Софт-скил": "soft",
     "Кнопка": "button",
     "Хард-скил": "hard",
     "Другое": "other",
-  }
+  }*/
   
   constructor(template: HTMLTemplateElement, protected events: IEvents, actions?: IActions) {
     this._cardElement = template.content.querySelector('.card').cloneNode(true) as HTMLElement;
@@ -38,8 +46,19 @@ export class Card implements ICard {
   }
 
   set cardCategory(value: string) {
-    this.setText(this._cardCategory, value);
-    this._cardCategory.className = `card__category card__category_${this._colors[value]}`
+  this.setText(this._cardCategory, value);
+  // Сбрасываем все старые классы и добавляем базовый класс
+  this._cardCategory.className = 'card__category'; 
+  // Добавляем класс из Map, если он существует
+  const colorClass = colors.get(value);
+    if (colorClass) {
+      this._cardCategory.classList.add(colorClass);
+    } else {
+      console.warn(`Нет цвета для категории: ${value}`);
+    }
+  }
+  get cardCategory() {
+    return this._cardCategory.textContent || '';
   }
 
   protected setPrice(value: number | null): string {
@@ -50,7 +69,7 @@ export class Card implements ICard {
   }
 
   render(data: IProductItems): HTMLElement {
-    this._cardCategory.textContent = data.category;
+    console.log('Категория:', data.category); // Лог для проверки значения категории
     this.cardCategory = data.category;
     this._cardTitle.textContent = data.title;
     this._cardImage.src = data.image;
