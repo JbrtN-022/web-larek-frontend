@@ -1,27 +1,27 @@
 import { IEvents } from "../base/events";
 
-export interface ISuccess {
-  success: HTMLElement;
-  description: HTMLElement;
-  button: HTMLButtonElement;
-  render(total: number): HTMLElement;
-}
+import { ensureElement, cloneTemplate } from "../../utils/utils";
+import { ISuccess } from '../../types/index';
 
-export class Success {
-  success: HTMLElement;
-  description: HTMLElement;
+export class Success implements ISuccess {
+  successElement: HTMLElement;
+  messageElement: HTMLElement;
   button: HTMLButtonElement;
+  // events: IEvents;
 
   constructor(template: HTMLTemplateElement, protected events: IEvents) {
-    this.success = template.content.querySelector('.order-success').cloneNode(true) as HTMLElement;
-    this.description = this.success.querySelector('.order-success__description');
-    this.button = this.success.querySelector('.order-success__close');
 
-    this.button.addEventListener('click', () => { events.emit('success:close') });
+    this.successElement = cloneTemplate<HTMLElement>(template);
+    this.messageElement = ensureElement<HTMLElement>('.order-success__description', this.successElement);
+    this.button = ensureElement<HTMLButtonElement>('.order-success__close', this.successElement);
+    this.button.addEventListener('click', () => this.events.emit('success:close'));
   }
 
+  /**
+   * Устанавливает текст сообщения и возвращает элемент успешного сообщения.
+   */
   render(total: number) {
-    this.description.textContent = String(`Списано' ${total} синапсов`);
-    return this.success
+    this.messageElement.textContent = `Списано ${total} синапсов`;
+    return this.successElement
   }
 }

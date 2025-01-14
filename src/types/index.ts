@@ -25,11 +25,11 @@ export interface IProductItems {
   }
   
   export interface IOrderLots{
-    payment: string;
-    email: string;
-    phone: string;
-    address: string;
-    total: number;
+    payment?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    total?: number;
     items: string[];
   }
   
@@ -42,7 +42,12 @@ export interface IProductItems {
   export type FormErrors = Partial<Record<keyof IOrder, string>>;
 
 
-
+  export interface ISuccess {
+    successElement: HTMLElement;
+    messageElement: HTMLElement;
+    button: HTMLButtonElement;
+    render(total: number): HTMLElement;
+}
 /*  export interface ISuccess {
     close: HTMLButtonElement;
     description: HTMLSpanElement;

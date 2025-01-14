@@ -39,44 +39,23 @@ export class FormModel implements IFormModel {
 
   setOrderAddress(value: string) {
     this.address = value;
+    console.log('Address updated:', value);
     this.updateFormState();
   }
 
   isValid() {
-    return !!this.address && !!this.email && !!this.phone && !!this.payment;
+
+    return !!this.address || !!this.email && !!this.phone || !!this.payment;
   }
+  
   
   updateFormState() {
     const isValid = this.isValid();
-  
-  // Получаем кнопку оформления заказа
-  const submitButton = document.querySelector<HTMLButtonElement>('.order__submit');
-  
-  if (submitButton) {
-    // Активируем или деактивируем кнопку
-    submitButton.disabled = !isValid;
-
-    // Меняем стиль кнопки, добавляя/удаляя класс для активного состояния
-    if (isValid) {
-      submitButton.classList.add('button_alt-active'); // Активный стиль
-    } else {
-      submitButton.classList.remove('button_alt-active'); // Обычный стиль
-    }
+    console.log('Form valid state:', isValid);
+    this.events.emit('form:stateChange', { isValid });
   }
 
-  // Уведомляем всех подписчиков о состоянии формы
-  this.events.emit('form:stateChange', { isValid });
-  }
 
-  /*setOrderAddress(field: string, value: string) {
-    if (field === 'address') {
-      this.address = value;
-    }
-
-    if (this.validateOrder()) {
-      this.events.emit('order:ready', this.getOrderLot());
-    }
-  }*/
 
   // валидация данных строки "address"
   validateOrder() {
@@ -106,13 +85,28 @@ export class FormModel implements IFormModel {
   setOrderData(field: string, value: string) {
     if (field === 'email') {
       this.email = value;
+      console.log(`Email updated: ${value}`);
     } else if (field === 'phone') {
       this.phone = value;
     }
 
+
+    
+    console.log('Current form data:', {
+      email: this.email,
+      phone: this.phone,
+      address: this.address,
+      payment: this.payment,
+      total: this.total,
+      items: this.items,
+    });
+
+    this.updateFormState();
+
     if (this.validateContacts()) {
       this.events.emit('order:ready', this.getOrderLot());
     }
+    
   }
 
   // Валидация данных строк "Email" и "Телефон"
@@ -130,6 +124,9 @@ export class FormModel implements IFormModel {
     if (this.phone.startsWith('8')) {
       this.phone = '+7' + this.phone.slice(1);
     }
+
+    console.log(`Phone updated: ${this.phone}`); 
+  
 
     if (!this.phone) {
       errors.phone = 'Необходимо указать телефон'
@@ -154,3 +151,36 @@ export class FormModel implements IFormModel {
     }
   }
 }
+
+
+/*updateFormState() {
+    const isValid = this.isValid();
+  
+  // Получаем кнопку оформления заказа
+  const submitButton = document.querySelector<HTMLButtonElement>('.order__submit');
+  
+  if (submitButton) {
+    // Активируем или деактивируем кнопку
+    submitButton.disabled = !isValid;
+
+    // Меняем стиль кнопки, добавляя/удаляя класс для активного состояния
+    if (isValid) {
+      submitButton.classList.add('button_alt-active'); // Активный стиль
+    } else {
+      submitButton.classList.remove('button_alt-active'); // Обычный стиль
+    }
+  }
+
+  // Уведомляем всех подписчиков о состоянии формы
+  this.events.emit('form:stateChange', { isValid });
+  }*/
+
+  /*setOrderAddress(field: string, value: string) {
+    if (field === 'address') {
+      this.address = value;
+    }
+
+    if (this.validateOrder()) {
+      this.events.emit('order:ready', this.getOrderLot());
+    }
+  }*/

@@ -20,10 +20,24 @@ export class Api {
     }
 
     protected handleResponse(response: Response): Promise<object> {
-        if (response.ok) return response.json();
-        else return response.json()
-            .then(data => Promise.reject(data.error ?? response.statusText));
-    }
+        if (response.ok) {
+          return response.json().catch(() => {
+            console.warn('Ответ успешный, но тело пустое.');
+            return {};
+        });
+        } else {
+          return response
+            .json()
+            .then((data) => {
+              console.error("Ошибка ответа сервера:", data);
+              return Promise.reject(data.error ?? response.statusText);
+            })
+            .catch(() => {
+              console.error("Ошибка парсинга ответа:", response.statusText);
+              return Promise.reject(response.statusText);
+            });
+        }
+      }
 
     get(uri: string) {
         return fetch(this.baseUrl + uri, {
@@ -36,7 +50,11 @@ export class Api {
         return fetch(this.baseUrl + uri, {
             ...this.options,
             method,
-            body: JSON.stringify(data)
-        }).then(this.handleResponse);
-    }
-}
+            body: JSON.stringify(data),
+        })
+        .then(this.handleResponse)
+        .catch((error) => {
+            console.error('Network error:', error);
+            return Promise.reject('Network error: ' + error);
+        });
+    }}

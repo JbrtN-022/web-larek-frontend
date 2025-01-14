@@ -106,25 +106,33 @@ events.on('basket:basketItemRemove', (item: IProductItems) => {
 events.on('order:open', () => {
   modal.content = order.render();
   modal.render();
-  
 
-  const button = document.querySelector('.order__button') as HTMLButtonElement;
-  if (button) {
-    formModel.validateOrder();
- //  formModel.items = basketModel.basketProducts.map((item) => item.id);
-}});
+});
+
+events.on('order:changeAddress', (data: { field: string, value: string }) => {
+  formModel.setOrderAddress(data.value);
+})
+
+events.on('order:changeEmail', (data: { field: string, value: string }) => {
+  formModel.setOrderData(data.field, data.value);
+});
+
+// Обновление Телефона
+events.on('order:changePhone', (data: { field: string, value: string }) => {
+  formModel.setOrderData(data.field, data.value);
+});
 
 events.on('order:paymentSelection', (button: HTMLButtonElement) => {
   formModel.payment = button.name; // Устанавливаем способ оплаты
   formModel.validateOrder(); // Перепроверяем валидность
 });
 
-events.on('order:changeAddress', (data: object) => {
+/*events.on('order:changeAddress', (data: object) => {
   if ('field' in data && 'value' in data) {
     const { field, value } = data as { field: string, value: string };
     formModel.setOrderAddress(field);
   }
-});
+});*/
 
 events.on('formErrors:address', (errors: Partial<IOrderForms>) => {
   const { address, payment } = errors; // Теперь TypeScript знает, что у errors есть address и payment
@@ -161,7 +169,7 @@ events.on('formErrors:change', (errors: Partial<IOrderForms>) => {
   contacts.formErrors.textContent = Object.values({ email, phone }).filter(Boolean).join('; ');
 });
 
-events.on('success:open', () => {
+/*events.on('success:open', () => {
   apiService.postOrderLot(formModel.getOrderLot())
     .then(() => {
       const success = new Success(templates.success, events);
@@ -170,11 +178,41 @@ events.on('success:open', () => {
       basket.renderHeaderBasketCounter(basketModel.getCounter());
       modal.render();
     })
-    .catch(console.error);
+    .catch((error) => {
+      console.error('Ошибка при отправке данных заказа:', error);
+
+      // В случае ошибки выводим уведомление или обрабатываем ошибку
+      events.emit('error:notification', { message: 'Ошибка при оформлении заказа. Попробуйте снова.' });
+    });
+});*/
+
+
+// не понимаю, проблема во мне или в сети в консоли выводятся все ошибки и процессы которые происходят после нажатия кнопки для открытия 
+//success массив данных сохраняется правильно так же как и цена 
+events.on('success:open', () => {
+  // Отправка данных о заказе на сервер
+  apiService.postOrderLot(formModel.getOrderLot())
+    .then(() => {
+      const success = new Success(templates.success, events);
+      // Устанавливаем содержимое модального окна и рендерим его
+      modal.content = success.render(basketModel.getSumAllProducts());
+      modal.render();
+    })
+    .catch((error) => {
+      console.error('Ошибка при отправке данных заказа:', error);
+
+      // Выводим уведомление об ошибке
+      events.emit('error:notification', { message: 'Не удалось оформить заказ. Пожалуйста, попробуйте снова.' });
+    });
 });
 
-events.on('success:close', () => modal.close());
-
+// Обработка события закрытия успешной оплаты (очистка корзины и закрытие окна)
+events.on('success:close', () => {
+  basketModel.clearBasketProducts();
+  basket.renderHeaderBasketCounter(basketModel.getCounter());
+  basket.renderSumAllProducts(basketModel.getSumAllProducts());
+  modal.close();
+});
 events.on('modal:open', () => page.locked = true); // Управляем блокировкой скролла через Page
 events.on('modal:close', () => page.locked = false);
 

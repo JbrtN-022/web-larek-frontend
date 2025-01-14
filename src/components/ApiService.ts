@@ -21,6 +21,10 @@ export class ApiService extends Api {
   
     // получаем ответ от сервера по сделанному заказу
     postOrderLot(order: IOrderLots): Promise<IOrderResult> {
+      console.log('POST Request URL:', this.baseUrl + '/order');
+      console.log('POST Request Body:', JSON.stringify(order));
+      console.log('POST Request Headers:', this.options.headers);
+
       return this.post(`/order`, order).then((data: IOrderResult) => data);
     }
   }
