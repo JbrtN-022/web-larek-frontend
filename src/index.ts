@@ -6,7 +6,7 @@ import { ApiService } from './components/ApiService';
 import { DataModel } from './components/Model/AppData';
 import { Card } from './components/View/Card';
 import { CardPreview } from './components/Presenter';
-import { IOrderForms, IProductItems } from './types';
+import { IOrderLots, IOrderForms, IProductItems } from './types';
 import { Modal } from './components/View/Modal';
 import { ensureElement } from './utils/utils';
 import { BasketModel } from './components/Model/Basket';
@@ -94,6 +94,11 @@ events.on('basket:open', () => {
   renderBasketItems();
   modal.content = basket.render();
   modal.render();
+
+  formModel.items = basketModel.basketProducts.map(product => product.id);
+  console.log('Обновленный formModel.items:', formModel.items);
+
+  apiService.postOrderLot(formModel.getOrderLot())
 });
 
 events.on('basket:basketItemRemove', (item: IProductItems) => {
@@ -101,6 +106,7 @@ events.on('basket:basketItemRemove', (item: IProductItems) => {
   basket.renderHeaderBasketCounter(basketModel.getCounter());
   basket.renderSumAllProducts(basketModel.getSumAllProducts());
   renderBasketItems();
+
 });
 
 events.on('order:open', () => {
@@ -190,6 +196,9 @@ events.on('formErrors:change', (errors: Partial<IOrderForms>) => {
 // не понимаю, проблема во мне или в сети в консоли выводятся все ошибки и процессы которые происходят после нажатия кнопки для открытия 
 //success массив данных сохраняется правильно так же как и цена 
 events.on('success:open', () => {
+
+  formModel.items = basketModel.basketProducts.map(product => product.id);
+  console.log('Финальный заказ перед отправкой:', formModel.getOrderLot());
   // Отправка данных о заказе на сервер
   apiService.postOrderLot(formModel.getOrderLot())
     .then(() => {

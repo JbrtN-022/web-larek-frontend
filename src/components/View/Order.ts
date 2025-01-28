@@ -39,10 +39,10 @@ export class Order extends Form {
       console.warn('Кнопка отправки не инициализирована.');
       return;
     }
-    if (this.submitButton) {
+    //if (this.submitButton) {
       this.submitButton.disabled = !isValid;
-      this.submitButton.classList.toggle('button_alt-active', isValid); // Добавляем класс стилей
-    }
+      //this.submitButton.classList.toggle('button_alt-active', isValid); // Добавляем класс стилей
+    //}
   }
 
 
