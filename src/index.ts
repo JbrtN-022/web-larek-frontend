@@ -83,8 +83,6 @@ events.on('basket:toggleItem', (item: IProductItems) => {
 });
 
 events.on('card:addBasket', () => {
-  //basketModel.setSelectedСard(dataModel.selectedСard);
-  //basket.renderHeaderBasketCounter(basketModel.getCounter());
   events.emit('basket:toggleItem', dataModel.selectedСard);
   modal.close();
 });
@@ -98,7 +96,7 @@ events.on('basket:open', () => {
   formModel.items = basketModel.basketProducts.map(product => product.id);
   console.log('Обновленный formModel.items:', formModel.items);
 
-  apiService.postOrderLot(formModel.getOrderLot())
+  //apiService.postOrderLot(formModel.getOrderLot())
 });
 
 events.on('basket:basketItemRemove', (item: IProductItems) => {
@@ -130,15 +128,20 @@ events.on('order:changePhone', (data: { field: string, value: string }) => {
 
 events.on('order:paymentSelection', (button: HTMLButtonElement) => {
   formModel.payment = button.name; // Устанавливаем способ оплаты
-  formModel.validateOrder(); // Перепроверяем валидность
+  
+  console.log("Выбран способ оплаты:", formModel.payment);
+  console.log("Текущий адрес:", formModel.address);
+  console.log("Текущий email:", formModel.email);
+  console.log("Текущий телефон:", formModel.phone);
+
+  // Проверяем, заполнены ли все обязательные поля перед валидацией
+  if (formModel.address && formModel.email && formModel.phone) {
+    formModel.validateOrder();
+  } else {
+    console.warn("Не все данные введены, ждем заполнения.");
+  }
 });
 
-/*events.on('order:changeAddress', (data: object) => {
-  if ('field' in data && 'value' in data) {
-    const { field, value } = data as { field: string, value: string };
-    formModel.setOrderAddress(field);
-  }
-});*/
 
 events.on('formErrors:address', (errors: Partial<IOrderForms>) => {
   const { address, payment } = errors; // Теперь TypeScript знает, что у errors есть address и payment
@@ -147,19 +150,6 @@ events.on('formErrors:address', (errors: Partial<IOrderForms>) => {
     .filter(Boolean)
     .join('; '); // Сообщения об ошибках, разделенные точкой с запятой
 });
-
-/*events.on('order:changeAddress', (data: { field: string, value: string }) => 
-  formModel.setOrderAddress(data.field, data.value));
-
-events.on('formErrors:address', (errors: Partial<IOrderForms>) => {
-  const { address, payment } = errors;
-  order.valid = !address && !payment;
-  order.formErrors.textContent = Object.values(errors)
-  .filter(Boolean)
-  .join('; ')
-
-  order.formErrors.textContent = Object.values({ address, payment }).filter(Boolean).join('; ');
-});*/
 
 events.on('contacts:open', () => {
   formModel.total = basketModel.getSumAllProducts();
@@ -175,45 +165,32 @@ events.on('formErrors:change', (errors: Partial<IOrderForms>) => {
   contacts.formErrors.textContent = Object.values({ email, phone }).filter(Boolean).join('; ');
 });
 
-/*events.on('success:open', () => {
-  apiService.postOrderLot(formModel.getOrderLot())
-    .then(() => {
-      const success = new Success(templates.success, events);
-      modal.content = success.render(basketModel.getSumAllProducts());
-      basketModel.clearBasketProducts();
-      basket.renderHeaderBasketCounter(basketModel.getCounter());
-      modal.render();
-    })
-    .catch((error) => {
-      console.error('Ошибка при отправке данных заказа:', error);
-
-      // В случае ошибки выводим уведомление или обрабатываем ошибку
-      events.emit('error:notification', { message: 'Ошибка при оформлении заказа. Попробуйте снова.' });
-    });
-});*/
-
-
 // не понимаю, проблема во мне или в сети в консоли выводятся все ошибки и процессы которые происходят после нажатия кнопки для открытия 
 //success массив данных сохраняется правильно так же как и цена 
 events.on('success:open', () => {
+  // Проверяем, указан ли способ оплаты
+  if (!formModel.payment) {
+    console.error("Ошибка: Способ оплаты не выбран!");
+    events.emit('error:notification', { message: 'Выберите способ оплаты перед оформлением заказа.' });
+    return; 
+  }
 
+  // Обновляем formModel.items перед отправкой
   formModel.items = basketModel.basketProducts.map(product => product.id);
   console.log('Финальный заказ перед отправкой:', formModel.getOrderLot());
-  // Отправка данных о заказе на сервер
+
   apiService.postOrderLot(formModel.getOrderLot())
     .then(() => {
       const success = new Success(templates.success, events);
-      // Устанавливаем содержимое модального окна и рендерим его
       modal.content = success.render(basketModel.getSumAllProducts());
       modal.render();
     })
     .catch((error) => {
       console.error('Ошибка при отправке данных заказа:', error);
-
-      // Выводим уведомление об ошибке
       events.emit('error:notification', { message: 'Не удалось оформить заказ. Пожалуйста, попробуйте снова.' });
     });
 });
+
 
 // Обработка события закрытия успешной оплаты (очистка корзины и закрытие окна)
 events.on('success:close', () => {
