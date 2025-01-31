@@ -34,14 +34,14 @@ export class Order extends Form {
   }
 
   // Управление активностью кнопки
-  private updateSubmitButton(isValid: boolean) {
+   updateSubmitButton(isValid: boolean) {
     if (!this.submitButton) {
       console.warn('Кнопка отправки не инициализирована.');
       return;
     }
     //if (this.submitButton) {
       this.submitButton.disabled = !isValid;
-      //this.submitButton.classList.toggle('button_alt-active', isValid); // Добавляем класс стилей
+      this.submitButton.classList.toggle('button_alt-active', isValid); // Добавляем класс стилей
     //}
   }
 

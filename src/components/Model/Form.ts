@@ -43,7 +43,7 @@ export class FormModel implements IFormModel {
     this.updateFormState();
   }
 
-  isValid() {
+  isValid(): boolean {
 
     return !!this.address || !!this.email && !!this.phone || !!this.payment;
   }

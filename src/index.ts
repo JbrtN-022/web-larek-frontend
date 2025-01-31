@@ -113,10 +113,6 @@ events.on('order:open', () => {
 
 });
 
-events.on('order:changeAddress', (data: { field: string, value: string }) => {
-  formModel.setOrderAddress(data.value);
-})
-
 events.on('order:changeEmail', (data: { field: string, value: string }) => {
   formModel.setOrderData(data.field, data.value);
 });
@@ -135,20 +131,23 @@ events.on('order:paymentSelection', (button: HTMLButtonElement) => {
   console.log("Текущий телефон:", formModel.phone);
 
   // Проверяем, заполнены ли все обязательные поля перед валидацией
-  if (formModel.address && formModel.email && formModel.phone) {
+  if (formModel.address && formModel.payment) {
     formModel.validateOrder();
   } else {
     console.warn("Не все данные введены, ждем заполнения.");
   }
 });
 
+events.on('order:changeAddress', (data: { field: string, value: string }) => {
+  formModel.setOrderAddress(data.value);
+  const isValid = !!formModel.address && !!formModel.payment;
+  order.updateSubmitButton(isValid);
+})
 
 events.on('formErrors:address', (errors: Partial<IOrderForms>) => {
   const { address, payment } = errors; // Теперь TypeScript знает, что у errors есть address и payment
   order.valid = !address && !payment; // Устанавливаем валидность формы
-  order.formErrors.textContent = Object.values(errors)
-    .filter(Boolean)
-    .join('; '); // Сообщения об ошибках, разделенные точкой с запятой
+  order.formErrors.textContent = Object.values({ address, payment }).filter(Boolean).join('; '); // Сообщения об ошибках, разделенные точкой с запятой
 });
 
 events.on('contacts:open', () => {
