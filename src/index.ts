@@ -148,6 +148,8 @@ events.on('formErrors:address', (errors: Partial<IOrderForms>) => {
   const { address, payment } = errors; // Теперь TypeScript знает, что у errors есть address и payment
   order.valid = !address && !payment; // Устанавливаем валидность формы
   order.formErrors.textContent = Object.values({ address, payment }).filter(Boolean).join('; '); // Сообщения об ошибках, разделенные точкой с запятой
+  const isValid = !!formModel.address && !!formModel.payment;
+  order.updateSubmitButton(isValid);
 });
 
 events.on('contacts:open', () => {
